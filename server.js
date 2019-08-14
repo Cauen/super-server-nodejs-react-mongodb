@@ -3,7 +3,7 @@ const app = require("http").createServer();
 const ip = require("ip");
 const socketServer = require("socket.io")(app);
 const mongoose = require('mongoose');
-const { create } = require('./controllers/productController');
+const { create, read, update, deleteP } = require('./controllers/productController');
 
 const { superServer } = require("./configs");
 
@@ -30,6 +30,17 @@ function myServer (port) {
       socket.on('new_product', function (data) {
         const { name, price } = data;
         create(socket, name, price);
+      });
+      socket.on('list_products', function () {
+        read(socket);
+      });
+      socket.on('edit_product', function (data) {
+        const { productID, name, price } = data;
+        update(socket, productID, name, price);
+      });
+      socket.on('delete_product', function (data) {
+        const { productID } = data;
+        deleteP(socket, productID);
       });
       socket.on('disconnect', () => {
         console.log("Client disconnected " + socket.id);

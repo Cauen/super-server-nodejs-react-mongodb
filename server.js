@@ -2,8 +2,14 @@ const ioc = require("socket.io-client");
 const app = require("http").createServer();
 const ip = require("ip");
 const socketServer = require("socket.io")(app);
+const mongoose = require('mongoose');
+const { create } = require('./controllers/productController');
 
 const { superServer } = require("./configs");
+
+mongoose.connect('mongodb+srv://ata:ata@emanuelcluster-d7gth.mongodb.net/distribuidos?retryWrites=true&w=majority', {
+  useNewUrlParser: true
+});
 
 function myServer (port) {
   this.serverPort = port;
@@ -21,8 +27,9 @@ function myServer (port) {
     socketServer.on('connection', function (socket) {
       console.log("CLIENT CONNECTION " +socket.id );
       socket.emit('test', { hello: 'world' });
-      socket.on('new_server', function (data) {
-        console.log(data);
+      socket.on('new_product', function (data) {
+        const { name, price } = data;
+        create(socket, name, price);
       });
       socket.on('disconnect', () => {
         console.log("Client disconnected " + socket.id);

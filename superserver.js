@@ -13,20 +13,26 @@ socketSuperServer.use((socket, next) => {
   next();
 });
 socketSuperServer.on('connection', function (socket) {
-  console.log("CLIENT CONNECTION " + socket.ip + ":" + socket.port );
   if (socket.isUser) {
-    socket.emit('server', getRandomServer(servers));
+    let randomServer = getRandomServer(servers);
+    console.log("Client connected to server " + randomServer + " and will disconnect to me!");
+    socket.emit('server', randomServer);
+  } else {
+    console.log("Server connected " + socket.ip + ":" + socket.port );
   }
   showServers();
-  socket.on('new_server', function (data) {
-    console.log(data);
+  socket.on('database_changed', function () {
+    let sockets = Object.values(servers);
+    sockets.forEach(socket => {
+      socket.emit("updated_database");
+    })
+
   });
   socket.on("disconnect", () => {
-    console.log("Super server loses connection with server " + socket.ip+":"+socket.port);
-
     if (socket.isUser) {
-      console.log("Client connected to server and disconnected from me!");
+      console.log("Client disconnected to me!");
     } else {
+      console.log("Super server loses connection with server " + socket.ip+":"+socket.port);
       delete servers[socket.ip+":"+socket.port];
       showServers();
     }
